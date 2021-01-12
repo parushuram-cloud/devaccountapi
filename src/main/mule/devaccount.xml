@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="154d14f3-a73d-4fbc-9b8b-a3e436f1b71f" >
+		<http:listener-connection host="localhost" port="8082" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="748e39fc-3b50-4f3c-a9bb-e9cd0bcb9deb" >
+		<db:my-sql-connection host="${db.host}" port="${db.port}" user="${db.userName}" password="${db.password}" database="${db.schema}" />
+	</db:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="827cd29e-5a36-4e59-9998-da152bd07ea9" file="devaccountapi-${env}.yaml" />
+	<flow name="devaccountFlow" doc:id="2af150b7-e3e8-44f5-a003-c53bf6ac5f24" >
+		<http:listener doc:name="Listener" doc:id="c9b1022e-ec56-4bf0-83b9-fed9363eacc5" config-ref="HTTP_Listener_config" path="/createAccount"/>
+		<logger level="INFO" doc:name="Logger" doc:id="ba583627-8e5d-4e9a-bdc7-5e5b305894b3" message="recieved the request::#[payload]"/>
+		<db:insert doc:name="Insert" doc:id="b6e5fe8b-2ab1-47b1-b857-0277cf5f742a" config-ref="Database_Config">
+			<db:sql ><![CDATA[insert into Account (name,gender,phone,email,dateOfBirth)
+values(:name,:gender,:mobileNo,:emailId,:dob);]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	name:payload.name,
+	gender:payload.gender,
+	mobileNo:payload.phone,
+	emailId:payload.email,
+	dob:payload.dateOfBirth
+}]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Transform Message" doc:id="de44ed50-32d9-4a68-83b8-4e56aaabd8e4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message:"account created success"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="71ea32ac-9047-4860-9c9b-fce96c839257" message="final response from database"/>
+	</flow>
+</mule>

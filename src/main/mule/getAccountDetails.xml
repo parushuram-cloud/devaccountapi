@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="getAccountDetailsFlow" doc:id="d4466a28-05e5-4465-879c-f0d9af558a9e" >
+		<http:listener doc:name="Listener" doc:id="4f9115db-a1a3-4f08-86f5-cd9fe6d54c3e" config-ref="HTTP_Listener_config" path="/getAccountById"/>
+		<logger level="INFO" doc:name="Logger" doc:id="e438ac2a-24d2-4d35-ac08-c0bef14fd6f7" message="recieved the request"/>
+		<db:select doc:name="Select" doc:id="0dde2e56-b3cf-4f9f-bb90-a1253c526e74" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from Account where accountId=:accId;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	accId:attributes.queryParams.accountId
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="7ce558fe-32fa-417d-9d4e-b9e63d06b631" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="076d288e-0f21-4654-b5db-13cc49719eb7" message="response from database"/>
+	</flow>
+</mule>
