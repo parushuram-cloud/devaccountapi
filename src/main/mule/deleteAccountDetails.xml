@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="deleteAccountDetailsFlow" doc:id="595fd777-2490-4dd6-8508-6e55227cb9cc" >
+		<http:listener doc:name="Listener" doc:id="233e9e3b-336f-4445-9fee-4e02eb660dfa" config-ref="HTTP_Listener_config" path="/deleteAccount"/>
+		<logger level="INFO" doc:name="Logger" doc:id="19af179a-8b45-4de0-a920-9a985f56d0b5" message="recieved the request"/>
+		<db:delete doc:name="Delete" doc:id="6003596e-21b5-43bb-8509-29dbe7ac5c12" config-ref="Database_Config">
+			<db:sql ><![CDATA[select from Account where accountId=:accId;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	acccId:attributes.queryParams.accountId
+}]]]></db:input-parameters>
+		</db:delete>
+		<ee:transform doc:name="Transform Message" doc:id="9f694043-e086-4727-bff0-26dd12194962" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	msg: "account deleted succcess"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="fab47580-7962-4b95-a9b0-fadabcd6a38a" message="reponse from DB"/>
+	</flow>
+</mule>
